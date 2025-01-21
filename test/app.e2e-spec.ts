@@ -15,10 +15,12 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('GET - /example/all-item', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/example/all-item')
+      .set('Content-Type', 'application/json') // Header
+      .send({}) // request body
       .expect(200)
-      .expect('Hello World!');
+      .expect(['Item 1', 'Item 2', 'Item 3']);
   });
 });
