@@ -6,7 +6,7 @@ export class ExampleController {
   constructor(private readonly exampleService: ExampleService) {}
 
   @Get('/all-item')
-  findAll(): string[] {
+  findAll() {
     return this.exampleService.getAllItems();
   }
 }

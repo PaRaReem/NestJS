@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { FirebaseService } from '../firebase/firebase.service';
 
 @Injectable()
 export class ExampleService {
   private items: string[] = ['Item 1', 'Item 2', 'Item 3']; // Sample data
+  constructor(private firebaseService: FirebaseService) {}
 
   // Get all items
-  getAllItems(): string[] {
+  async getAllItems() {
     return this.items;
   }
 
