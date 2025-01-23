@@ -5,8 +5,8 @@ import { ExampleService } from './example.service';
 export class ExampleController {
   constructor(private readonly exampleService: ExampleService) {}
 
-  @Get('/all-item')
-  findAll() {
-    return this.exampleService.getAllItems();
+  @Get()
+  example() {
+    return this.exampleService.example();
   }
 }

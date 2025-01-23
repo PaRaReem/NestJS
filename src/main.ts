@@ -4,9 +4,11 @@ import { ResponseInterceptor } from './common/middlewares/response-format.interc
 import { LoggerInterceptor } from './common/middlewares/logger.interceptor';
 import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from './modules/firebase/firebase.service';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const configService = app.get(ConfigService);
   const port = configService.get('app.port');
   // Get FirebaseService and test the connection
