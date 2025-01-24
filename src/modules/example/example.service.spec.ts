@@ -13,6 +13,6 @@ describe('ExampleService', () => {
   });
 
   it('should be defined', () => {
-    expect(service.getAllItems).toBeDefined();
+    expect(service.example).toBeDefined();
   });
 });

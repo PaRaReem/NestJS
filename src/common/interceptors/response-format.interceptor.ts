@@ -6,17 +6,20 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { responseFormat } from '../utils/format.util';
+import { formatLog, formatResponse } from '../utils/format.util';
+import { logger } from '../utils/winston-logger.util';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    // const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
     return next.handle().pipe(
       map((data) => {
         const statusCode = response.statusCode;
-        return responseFormat(statusCode, data);
+        const formatedResponse = formatResponse(statusCode, data);
+        logger.info(formatLog(request, response, formatedResponse));
+        response.status(statusCode).json(formatedResponse);
       }),
     );
   }

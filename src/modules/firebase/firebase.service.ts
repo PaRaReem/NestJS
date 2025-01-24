@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { app } from 'firebase-admin';
 import * as admin from 'firebase-admin';
+import { formatDateTimeFirebase } from 'src/common/utils/format.util';
 
 @Injectable()
 export class FirebaseService {
@@ -14,7 +15,7 @@ export class FirebaseService {
 
   constructor(@Inject('FIREBASE_APP') private readonly firebaseApp: app.App) {
     this.db = this.firebaseApp.firestore();
-    this.collection = this.db.collection('test-collection');
+    this.collection = this.db.collection('test-crud');
   }
 
   //#region testConnection | ทดสบการเชื่อมต่อ firebase
@@ -46,7 +47,11 @@ export class FirebaseService {
         created_at: admin.firestore.FieldValue.serverTimestamp(),
         updated_at: admin.firestore.FieldValue.serverTimestamp(),
       });
-      return docRef;
+      const docSnapshot = await docRef.get();
+      return {
+        id: docRef.id,
+        ...formatDateTimeFirebase(docSnapshot.data()),
+      };
     } catch (error) {
       console.error(`Error adding documents in "${collectionName}":`, error);
       throw new BadRequestException(
@@ -68,14 +73,14 @@ export class FirebaseService {
         return [
           {
             id: docSnapshot.id,
-            ...docSnapshot.data(),
+            ...formatDateTimeFirebase(docSnapshot.data()),
           },
         ];
       } else {
         querySnapshot = await collection.get();
         return querySnapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data(),
+          ...formatDateTimeFirebase(doc.data()),
         }));
       }
     } catch (error) {
@@ -95,7 +100,7 @@ export class FirebaseService {
     collectionName: string,
     id: string,
     updatedItem: any,
-  ): Promise<string> {
+  ): Promise<any> {
     const collection = this.getCollection(collectionName);
     try {
       const docRef = collection.doc(id);
@@ -103,8 +108,11 @@ export class FirebaseService {
       if (!docSnapshot.exists) {
         throw new NotFoundException(`Document with ID "${id}" not found.`);
       }
-      await docRef.update(updatedItem);
-      return `Item with ID "${id}" updated successfully!`;
+      await docRef.update({
+        ...updatedItem, // ข้อมูลที่รับมา
+        updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return { message: `Item with ID "${id}" updated successfully!` };
     } catch (error) {
       console.error(`Error updating document in "${collectionName}":`, error);
       if (error instanceof NotFoundException) {
@@ -118,7 +126,7 @@ export class FirebaseService {
 
   //#endregion
   //#region | delete
-  async deleteDoc(collectionName: string, id: string): Promise<string> {
+  async deleteDoc(collectionName: string, id: string): Promise<any> {
     const collection = this.getCollection(collectionName);
     try {
       const docRef = collection.doc(id);
@@ -127,7 +135,7 @@ export class FirebaseService {
         throw new NotFoundException(`Document with ID "${id}" not found.`);
       }
       await docRef.delete();
-      return `Item with ID "${id}" deleted successfully!`;
+      return { message: `Item with ID "${id}" deleted successfully!` };
     } catch (error) {
       console.error(`Error deleting document in "${collectionName}":`, error);
       // Handle the error based on its type (Firestore related or other errors)
