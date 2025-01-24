@@ -8,6 +8,12 @@ import { app } from 'firebase-admin';
 import * as admin from 'firebase-admin';
 import { formatDateTimeFirebase } from 'src/common/utils/format.util';
 
+interface BaseDoc {
+  created_at?: admin.firestore.FieldValue;
+  updated_at?: admin.firestore.FieldValue;
+  [key: string]: any;
+}
+
 @Injectable()
 export class FirebaseService {
   private readonly db: FirebaseFirestore.Firestore;
@@ -17,6 +23,13 @@ export class FirebaseService {
     this.db = this.firebaseApp.firestore();
     this.collection = this.db.collection('test-crud');
   }
+  //#region | auth
+  //#region | getAuth
+  getAuth() {
+    return admin.auth();
+  }
+  //#endregion
+  //#endregion
 
   //#region testConnection | ทดสบการเชื่อมต่อ firebase
   async testConnection(): Promise<string> {
@@ -33,13 +46,14 @@ export class FirebaseService {
     }
   }
   //#endregion
+  //#region | CRUD
   //#region getCollection | เลือกcollection
   getCollection(collectionName: string): FirebaseFirestore.CollectionReference {
     return this.db.collection(collectionName);
   }
   //#endregion
   //#region | create
-  async createDoc(collectionName: string, item: any) {
+  async createDoc(collectionName: string, item: BaseDoc) {
     try {
       const collection = this.getCollection(collectionName);
       const docRef = await collection.add({
@@ -95,11 +109,10 @@ export class FirebaseService {
   }
   //#endregion
   //#region | update
-
   async updateDoc(
     collectionName: string,
     id: string,
-    updatedItem: any,
+    updatedItem: BaseDoc,
   ): Promise<any> {
     const collection = this.getCollection(collectionName);
     try {
@@ -147,5 +160,11 @@ export class FirebaseService {
       );
     }
   }
+  async softDeleteDoc(collectionName: string, id: string): Promise<any> {
+    return this.updateDoc(collectionName, id, {
+      deleted_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+  //#endregion
   //#endregion
 }
